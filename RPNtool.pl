@@ -67,7 +67,7 @@ sub isOperator
 sub isFunction
 {
   my ($who)=@_;
-  if(($who =~ /sin/i) || ($who =~ /cos/i) || ($who =~ /tan/i) || ($who =~ /sqrt/i) || ($who =~ /log/i) || ($who =~ /ln/i))
+  if(($who =~ /sin/i) || ($who =~ /cos/i) || ($who =~ /tan/i) || ($who =~ /sqrt/i) || ($who =~ /log/i) || ($who =~ /ln/i) || ($who =~ /exp/i))
   {
     return 1;
   }
@@ -119,9 +119,13 @@ sub prcd
 {
 	my ($who)=@_;
 	my $retVal;
-	if($who eq "^")
+	if($who eq "~")
 	{
 		$retVal="50";
+	}
+	elsif($who eq "^")
+	{
+	  $retVal="50";
 	}
 	elsif(($who eq "*") || ($who eq "/"))
 	{
@@ -162,7 +166,22 @@ sub genArr
 # 	say "Parsing $who";
 	for($i=0; $i<=$l; $i++)
 	{
-		$who=~m/\A([0-9]|\+|\-|\*|\/|\^|\(|\)){1}/;
+	  $who=~m/\A\-{1}/;
+	  if(defined($&))
+	  {
+	    if($i==0||($i>0&&!isOperand($whoArr[$i-1])))
+	    {
+	      $whoArr[$i]="~";
+	    }
+	    else
+	    {
+	      $whoArr[$i]="-";
+	    }
+	    $who=$';
+	 # 	say "unary binary minus check: token=$whoArr[$i] remains=$who";
+	    next;
+	  }
+		$who=~m/\A(([0-9]+|\.)+|\+|\*|\/|\^|\(|\)){1}/;
 		if(defined($&))
 		{
 			$whoArr[$i]=$&;
@@ -421,6 +440,13 @@ sub runTestCases
 	testCase( "1*cos(6^9)"           , "1 6 9 ^ cos *" );
 	testCase( "1*cos(6^9)+sin(3/4)"  , "1 6 9 ^ cos * 3 4 / sin +" );
 	testCase( "1/log(cos(2*3))"      , "1 2 3 * cos log /" );
+	testCase( "-1*sin(-10)"          , "1 - 10 - sin *");
+	testCase( "5-1"                  , "5 1 -");
+	testCase( "-5.1*5.3"             , "5.1 - 5.3 *");
+	testCase( "1.7-3.14"             , "1.7 3.14 -");
+	testCase( "1.9^-2.73"            , "1.9 2.73 - ^");
+	testCase( "cos(-14)"             , "14 - cos");
+	testCase( "5*-1*cos(-30)"        , "5 1 - 30 - cos * *");
 }
 
 #
