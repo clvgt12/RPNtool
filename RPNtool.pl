@@ -104,7 +104,7 @@ sub prcd
 	}
 	elsif(isFunction($who))
 	{
-		$retVal="15";
+		$retVal="20";
 	}
 	else
 	{
@@ -119,7 +119,7 @@ sub genArr
 	my @whoArr;
 	my $i;
 	my $l = length($who);
-	#say "Parsing $who";
+# 	say "Parsing $who";
 	for($i=0; $i<=$l; $i++)
 	{
 		$who=~m/\A([0-9]|\+|\-|\*|\/|\^|\(|\)){1}/;
@@ -127,20 +127,20 @@ sub genArr
 		{
 			$whoArr[$i]=$&;
 			$who=$';
-			#say "non alpha check: token=$whoArr[$i] remains=$who";
+		# 	say "non alpha check: token=$whoArr[$i] remains=$who";
 			next;
 		}
-		$who=~m/\A[A-Z|a-z]+/;
+		$who=~m/\A[A-Z|a-z]+\(/;
 		if(defined($&))
 		{
-			$whoArr[$i]=$&;
+			$whoArr[$i]=$&; $whoArr[$i]=~tr/\($//d;
 			$who=$';
-			#say "alpha check: token=$whoArr[$i] remains=$who";
+		# 	say "alpha check: token=$whoArr[$i] remains=$who";
 			next;
-		}		
-	} 
-	#say Dumper @whoArr;
-	#say "Done";
+		}
+	}
+# 	say Dumper @whoArr;
+# 	say "Done";
 	return(@whoArr);
 }
 
@@ -152,6 +152,9 @@ sub InfixToPostfix
 	my @stackArr;
 	my $postfixPtr=0;
 	my $i;
+	
+# 	return ();   # Uncomment to debug parser sub genArr
+	
 	for($i=0; $i<scalar(@infixArr); $i++)
 	{
 		if(isOperand($infixArr[$i]))
@@ -187,8 +190,9 @@ sub InfixToPostfix
 		}
 		if($infixArr[$i] eq ")")
 		{
-			while(topStack(@stackArr) ne "(")
+			while(!isEmpty(@stackArr))
 			{
+			  last unless (topStack(@stackArr) ne "(");
 				$postfixArr[$postfixPtr]=pop(@stackArr);
 				$postfixPtr++;
 			}
@@ -318,22 +322,22 @@ sub printInfixtoPostfix
 
 sub testCase
 {
-	my ($testString, @expectedResult) = @_;
+	my ($testString, $expectedResult) = @_;
 	my @observedResult=InfixToPostfix($testString);
-	my $result = (join(";",@expectedResult) eq join(";",@observedResult)) ? "PASSED" : "FAILED";
-	say "$result : testString=($testString) expectedResult = ( @expectedResult )  observedResults = ( @observedResult )";
+	my $result = ($expectedResult eq join(" ",@observedResult)) ? "PASSED" : "FAILED";
+	say "$result : testString=($testString) expectedResult = ( $expectedResult )  observedResults = ( @observedResult )";
 }
 
 sub runTestCases
 {
-	testCase( ("1+2","1","2","+") );
-	testCase( ("1*(2^(3+4))","1","2","3","4","+","^","*") );
-	testCase( ("1*2^(3+4)","1","2","3","4","+","^","*") );
-	testCase( ("sin(1+2^4)","1","2","4","^","+","sin") );
-	testCase( ("1+sin(2*4)","1","2","4","*","sin","+") );
-	testCase( ("1*cos(6^9)","1","6","9","^","cos","*") );
-	testCase( ("1*cos(6^9)+sin(3/4)","1","6","9","^","cos","*","3","4","/","sin","+") );
-	#printInfixtoPostfix("1/log(cos(2*3))");   this case produces an infinite loop
+	testCase( "1+2"                  , "1 2 +" );
+	testCase( "1*(2^(3+4))"          , "1 2 3 4 + ^ *" );
+	testCase( "1*2^(3+4)"            , "1 2 3 4 + ^ *" );
+	testCase( "sin(1+2^4)"           , "1 2 4 ^ + sin" );
+	testCase( "1+sin(2*4)"           , "1 2 4 * sin +" );
+	testCase( "1*cos(6^9)"           , "1 6 9 ^ cos *" );
+	testCase( "1*cos(6^9)+sin(3/4)"  , "1 6 9 ^ cos * 3 4 / sin +" );
+	testCase( "1/log(cos(2*3))"      , "1 2 3 * cos log /" );
 }
 
 sub main
