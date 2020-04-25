@@ -21,6 +21,7 @@ use warnings;
 use 5.10.0;
 
 use Data::Dumper;
+use Getopt::Std;
 
 #
 # sub isOperand
@@ -371,10 +372,19 @@ sub evalInfix
 sub printInfixtoPostfix
 {
    my (@result) = InfixToPostfix(@_);
-   say "My Test string is @_";
-   say "My Result is:";
-   say Dumper @result;
-  
+   say join(" ",@result);
+}
+
+#
+# sub printInfixtoPostfix
+#
+
+sub printHelp
+{
+  say "RPNtool.pl: math infix to RPN tool .. and back ..";
+  say "Invoke as : RPNtool.pl -t -r infix_expression";
+  say "                       -t                  (runs built in test cases)";
+  say "                       -r infix_expression (convert to RPN expression)";
 }
 
 #
@@ -419,9 +429,12 @@ sub runTestCases
 
 sub main
 {
-	runTestCases;
-	#printInfixtoPostfix(@ARGV);
+  my %options=();
+  getopts("hr:t", \%options);
+	runTestCases if (defined($options{t}));
+	printInfixtoPostfix($options{r}) if (defined($options{r}));
+	printHelp if (defined($options{h}));
 	exit 0;
 }
 
-main;
+main();
