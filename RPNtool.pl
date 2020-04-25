@@ -22,6 +22,11 @@ use 5.10.0;
 
 use Data::Dumper;
 
+#
+# sub isOperand
+# returns a boolean if the input char is a math operand e.g. number
+#
+
 sub isOperand
 {
 	my ($who)=@_;
@@ -34,6 +39,11 @@ sub isOperand
 		return 0;
 	}
 }
+
+#
+# sub isOperator
+# returns a boolean if the input char is a recognized math operator
+#
 
 sub isOperator
 {
@@ -48,6 +58,11 @@ sub isOperator
 	}
 }
 
+#
+# sub isFunction
+# returns a boolean if the input string is a recognized math function
+#
+
 sub isFunction
 {
   my ($who)=@_;
@@ -61,12 +76,23 @@ sub isFunction
   }
 }
 
+#
+# sub topStack
+# essentially a stack peek() function
+# returns the value at the top of the FILO stack
+#
+
 sub topStack
 {
 	my (@arr)=@_;
 	my $arr_len=@arr;
 	return($arr[$arr_len-1]);
 }
+
+#
+# sub isEmpty
+# returns boolean indicating if input list is empty (or not)
+#
 
 sub isEmpty
 {
@@ -81,6 +107,12 @@ sub isEmpty
 		return 0;
 	}
 }
+
+#
+# sub prcd
+# used to facilitate infix to RPN processing
+# returns a priority assigned to an operator, or function
+#
 
 sub prcd
 {
@@ -113,9 +145,16 @@ sub prcd
 	return($retVal);
 }
 
+#
+# sub genArr
+#
+# this is the input string parser
+# returns a list object of tokens
+#
+
 sub genArr
 {
-	my ($who)=@_;
+	my ($who)=@_; $who=~tr/ //d;  #remove all whitespace from input string;
 	my @whoArr;
 	my $i;
 	my $l = length($who);
@@ -143,6 +182,13 @@ sub genArr
 # 	say "Done";
 	return(@whoArr);
 }
+
+#
+# sub InfixToPostfix
+#
+# this performs the Shunting Yard Algorithm on input infix math string
+# returns a list object representing a RPN (postfix) math expression
+#
 
 sub InfixToPostfix
 {
@@ -213,6 +259,11 @@ sub InfixToPostfix
 	}
 	return(@postfixArr);
 }
+
+#
+# the following are collection of RPN post fix to infix processing routines
+# remains untested
+#
 
 sub PostfixToInfix
 {
@@ -311,6 +362,12 @@ sub evalInfix
 	return PostfixEval(joinArr(InfixToPostfix($exp)));
 }
 
+#
+# sub printInfixtoPostfix
+#
+# pretty prints a RPN math expression given an input infix math expression
+#
+
 sub printInfixtoPostfix
 {
    my (@result) = InfixToPostfix(@_);
@@ -320,6 +377,15 @@ sub printInfixtoPostfix
   
 }
 
+#
+# sub testCase
+#
+# executes a test case given the input testString (math expression)
+# compares the observed result against passed expected result
+# (hardcoded for Infix to Postfix RPN testing)
+# prints pass/fail, testString, observed result
+#
+
 sub testCase
 {
 	my ($testString, $expectedResult) = @_;
@@ -328,9 +394,16 @@ sub testCase
 	say "$result : testString=($testString) expectedResult = ( $expectedResult )  observedResults = ( @observedResult )";
 }
 
+#
+# sub runTestCases
+#
+# this is a collection of test cases
+#
+
 sub runTestCases
 {
 	testCase( "1+2"                  , "1 2 +" );
+	testCase( "1 + 2"                , "1 2 +" );
 	testCase( "1*(2^(3+4))"          , "1 2 3 4 + ^ *" );
 	testCase( "1*2^(3+4)"            , "1 2 3 4 + ^ *" );
 	testCase( "sin(1+2^4)"           , "1 2 4 ^ + sin" );
@@ -339,6 +412,10 @@ sub runTestCases
 	testCase( "1*cos(6^9)+sin(3/4)"  , "1 6 9 ^ cos * 3 4 / sin +" );
 	testCase( "1/log(cos(2*3))"      , "1 2 3 * cos log /" );
 }
+
+#
+# sub main
+#
 
 sub main
 {
