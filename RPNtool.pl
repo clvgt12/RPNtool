@@ -25,7 +25,7 @@ use Data::Dumper;
 sub isOperand
 {
 	my ($who)=@_;
-	if((!isOperator($who)) && ($who ne "(") && ($who ne ")"))
+	if((!isOperator($who)) && ($who ne "(") && ($who ne ")") && !isFunction($who))
 	{
 		return 1;
 	}
@@ -38,7 +38,7 @@ sub isOperand
 sub isOperator
 {
 	my ($who)=@_;
-	if(($who eq "+") || ($who eq "-") || ($who eq "*") || ($who eq "/") || ($who eq "^") || isFunction($who))
+	if(($who eq "+") || ($who eq "-") || ($who eq "*") || ($who eq "/") || ($who eq "^"))
 	{
 		return 1;
 	}
@@ -161,7 +161,7 @@ sub InfixToPostfix
 		}
 		if(isOperator($infixArr[$i]))
 		{
-			if($infixArr[$i] ne "^" || !isFunction($infixArr[$i]))
+			if($infixArr[$i] ne "^")
 			{
 				while((!isEmpty(@stackArr)) && (prcd($infixArr[$i])<=prcd(topStack(@stackArr))))
 				{
@@ -181,9 +181,9 @@ sub InfixToPostfix
 			}
 			push(@stackArr,$infixArr[$i]);
 		}
-		if($infixArr[$i] eq "(")
+		if($infixArr[$i] eq "(" || isFunction($infixArr[$i]))
 		{
-			push(@stackArr,$infixArr[$i])
+			push(@stackArr,$infixArr[$i]);
 		}
 		if($infixArr[$i] eq ")")
 		{
@@ -197,7 +197,7 @@ sub InfixToPostfix
 	}
 	while(!isEmpty(@stackArr))
 	{
-		if(topStack(@stackArr) eq "(")
+		if(topStack(@stackArr) eq "(" )
 		{
 			pop(@stackArr)
 		}
