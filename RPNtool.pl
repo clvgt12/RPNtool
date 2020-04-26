@@ -159,11 +159,17 @@ sub prcd
 
 sub genArr
 {
-	my ($who)=@_; $who=~tr/ //d;  #remove all whitespace from input string;
+	my ($who)=@_;
 	my @whoArr;
 	my $i;
+	my $temp;
+	my $pc=0;
 	my $l = length($who);
+	
+	$who=~tr/ //d;  #remove all whitespace from input string;
+	
 # 	say "Parsing $who";
+
 	for($i=0; $i<=$l; $i++)
 	{
 	  $who=~m/\A\-{1}/;
@@ -171,7 +177,7 @@ sub genArr
 	  {
 	    if($i==0||($i>0&&!isOperand($whoArr[$i-1])))
 	    {
-	      $whoArr[$i]="~";
+	      $whoArr[$i]="~"
 	    }
 	    else
 	    {
@@ -181,23 +187,49 @@ sub genArr
 	 # 	say "unary binary minus check: token=$whoArr[$i] remains=$who";
 	    next;
 	  }
-		$who=~m/\A(([0-9]+|\.)+|\+|\*|\/|\^|\(|\)){1}/;
+		$who=~m/\A([0-9]+|\.)+/;
 		if(defined($&))
 		{
 			$whoArr[$i]=$&;
 			$who=$';
-		# 	say "non alpha check: token=$whoArr[$i] remains=$who";
+			if(defined($whoArr[$i-1]))
+			{
+			  if($whoArr[$i-1] eq "~")
+			  {
+			    $temp=$whoArr[$i-1]; $whoArr[$i-1]=$whoArr[$i]; $whoArr[$i]=$temp;
+			  }
+			}
+		# 	say "numeral check: token=$whoArr[$i] remains=$who";
+			next;
+		}
+		$who=~m/\A(\+|\*|\/|\^){1}/;
+		if(defined($&))
+		{
+			$whoArr[$i]=$&;
+			$who=$';
+		# 	say "operator check: token=$whoArr[$i] remains=$who";
+			next;
+		}
+		$who=~m/\A(\(|\)){1}/;
+		if(defined($&))
+		{
+			$whoArr[$i]=$&;
+			$who=$';
+			$pc++ if ($& eq "(");  $pc-- if ($& eq ")");
+		# 	say "parenthesis check: token=$whoArr[$i] remains=$who";
 			next;
 		}
 		$who=~m/\A[A-Z|a-z]+\(/;
 		if(defined($&))
 		{
 			$whoArr[$i]=$&; $whoArr[$i]=~tr/\($//d;
-			$who=$';
-		# 	say "alpha check: token=$whoArr[$i] remains=$who";
+			$who=$'; $pc++;
+		  die "Unrecognized function $&" if (!isFunction($&));
+		# 	say "function check: token=$whoArr[$i] remains=$who";
 			next;
 		}
 	}
+	die "Unbalanced parentheses in input string!" if ($pc != 0);
 # 	say Dumper @whoArr;
 # 	say "Done";
 	return(@whoArr);
@@ -440,13 +472,13 @@ sub runTestCases
 	testCase( "1*cos(6^9)"           , "1 6 9 ^ cos *" );
 	testCase( "1*cos(6^9)+sin(3/4)"  , "1 6 9 ^ cos * 3 4 / sin +" );
 	testCase( "1/log(cos(2*3))"      , "1 2 3 * cos log /" );
-	testCase( "-1*sin(-10)"          , "1 - 10 - sin *");
+	testCase( "-1*sin(-10)"          , "1 ~ 10 ~ sin *");
 	testCase( "5-1"                  , "5 1 -");
-	testCase( "-5.1*5.3"             , "5.1 - 5.3 *");
+	testCase( "-5.1*5.3"             , "5.1 ~ 5.3 *");
 	testCase( "1.7-3.14"             , "1.7 3.14 -");
-	testCase( "1.9^-2.73"            , "1.9 2.73 - ^");
-	testCase( "cos(-14)"             , "14 - cos");
-	testCase( "5*-1*cos(-30)"        , "5 1 - 30 - cos * *");
+	testCase( "1.9^-2.73"            , "1.9 2.73 ~ ^");
+	testCase( "cos(-14)"             , "14 ~ cos");
+	testCase( "5*-1*cos(-30)"        , "5 1 ~ * 30 ~ cos *");
 }
 
 #
